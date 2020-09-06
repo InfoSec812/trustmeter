@@ -1,47 +1,98 @@
 <template>
   <q-page class="row items-center justify-evenly">
-    <example-component
-      title="Example component"
-      active
-      :todos="todos"
-      :meta="meta"
-    ></example-component>
+    <span class="col-12" style="font-size: 2rem; width: 100%; text-align: center;">{{ trustee.name }}</span>
+    <color-progress-circle :score="trustee.score" :size="400"/>
+    <div class="rightPad">
+      <q-btn
+        @click="increment()"
+        @mousedown="startIncrement()"
+        @mouseup="stopIncrement()"
+        icon="keyboard_arrow_up"
+        size="3rem"
+        class="row"
+      />
+      <q-btn
+        @click="decrement()"
+        @mousedown="startDecrement()"
+        @mouseup="stopDecrement()"
+        icon="keyboard_arrow_down"
+        size="3rem"
+        class="row"
+      />
+    </div>
   </q-page>
 </template>
 
 <script lang="ts">
-import { Todo, Meta } from 'components/models';
-import ExampleComponent from 'components/ClassComponent.vue';
-import { Vue, Component } from 'vue-property-decorator';
+import { Vue, Component, Prop } from 'vue-property-decorator';
+import ColorProgressCircle from '../components/ColorProgressCircle';
 
 @Component({
-  components: { ExampleComponent }
+  components: {
+    'color-progress-circle': ColorProgressCircle
+  },
+  computed: {
+    trustee: {
+      get () {
+        return this.$store.state.trustees[this.$route.params.id];
+      }
+    },
+    color: {
+      get () {
+        let score = this.$store.state.trustees[this.$route.params.id].score;
+        let red = 255;
+        let green = 0;
+        if (score < 50) {
+          green = Math.round(255/50*score);
+        } else {
+          green = 255;
+          red = Math.round(255 - (255/50*(score-50)));
+        }
+
+        let greenHex = green <= 16 ? "0"+green.toString(16) : green.toString(16);
+        let redHex = red <= 16 ? "0"+red.toString(16) : red.toString(16);
+
+        return `#${redHex}${greenHex}00`;
+      }
+    }
+  }
 })
 export default class PageIndex extends Vue {
-  todos: Todo[] = [
-    {
-      id: 1,
-      content: 'ct1'
-    },
-    {
-      id: 2,
-      content: 'ct2'
-    },
-    {
-      id: 3,
-      content: 'ct3'
-    },
-    {
-      id: 4,
-      content: 'ct4'
-    },
-    {
-      id: 5,
-      content: 'ct5'
-    }
-  ];
-  meta: Meta = {
-    totalCount: 1200
-  };
+  intervalHandle?: number;
+
+  increment() {
+    this.$store.commit('trustees/increment', { id: this.$route.params.id });
+  }
+
+  decrement() {
+    this.$store.commit('trustees/decrement', { id: this.$route.params.id });
+  }
+
+  startIncrement() {
+    this.intervalHandle = window.setInterval(() => {
+      this.increment();
+    }, 500);
+  }
+
+  stopIncrement() {
+    window.clearInterval(this.intervalHandle)
+  }
+
+  startDecrement() {
+    this.intervalHandle = window.setInterval(() => {
+      this.decrement();
+    }, 500);
+  }
+
+  stopDecrement() {
+    window.clearInterval(this.intervalHandle)
+  }
 };
 </script>
+
+<style lang="sass" scoped>
+.rightPad
+  margin: 0 10px 0 10px
+.nameLabel
+  size: 30rem
+</style>

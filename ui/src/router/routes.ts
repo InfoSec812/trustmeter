@@ -1,11 +1,18 @@
 import { RouteConfig } from 'vue-router';
+import Index from 'pages/Index.vue';
+import MainLayout from 'layouts/MainLayout.vue';
 
 const routes: RouteConfig[] = [
   {
     path: '/',
-    component: () => import('layouts/MainLayout.vue'),
+    component: MainLayout,
+    props: true,
     children: [
-      { path: '', component: () => import('pages/Index.vue') }
+      {
+        name: 'index',
+        path: ':id',
+        component: Index
+      }
     ]
   },
 
